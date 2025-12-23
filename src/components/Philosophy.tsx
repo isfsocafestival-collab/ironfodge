@@ -59,6 +59,24 @@ const philosophySections = [
 export default function Philosophy() {
   const { ref, controls } = useScrollAnimation(0.2)
   const cardsRef = useRef<HTMLDivElement[]>([])
+  const spiralRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    // Parallax effect for spiral lines
+    if (spiralRef.current) {
+      gsap.to(spiralRef.current, {
+        y: -50,
+        rotation: 2,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: spiralRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
+    }
+  }, [])
 
   useEffect(() => {
     cardsRef.current.forEach((card, index) => {
@@ -154,6 +172,71 @@ export default function Philosophy() {
         }}
       />
 
+      {/* Premium Spiral Line - Spinal Curvature */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <svg
+          ref={spiralRef}
+          className="absolute w-full h-full"
+          viewBox="0 0 1920 1080"
+          preserveAspectRatio="xMidYMid slice"
+          style={{
+            willChange: 'transform',
+          }}
+        >
+          <defs>
+            <linearGradient id="philosophySpiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.6" />
+              <stop offset="30%" stopColor="#DC2626" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#DC2626" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
+            </linearGradient>
+            <filter id="philosophySpiralGlow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Main spiral curve - flowing from top-left to bottom-right */}
+          <motion.path
+            d="M -100 150 Q 300 100, 600 200 Q 900 300, 1200 400 Q 1500 500, 1920 600 L 2020 600"
+            fill="none"
+            stroke="url(#philosophySpiralGradient)"
+            strokeWidth="2.5"
+            filter="url(#philosophySpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.8 }}
+            transition={{ duration: 2.5, delay: 0.8, ease: "easeInOut" }}
+          />
+          
+          {/* Secondary spiral curve - more pronounced */}
+          <motion.path
+            d="M -50 350 Q 400 250, 800 350 Q 1200 450, 1600 550 Q 1800 600, 2020 700 L 2020 700"
+            fill="none"
+            stroke="url(#philosophySpiralGradient)"
+            strokeWidth="2"
+            filter="url(#philosophySpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.6 }}
+            transition={{ duration: 3, delay: 1, ease: "easeInOut" }}
+          />
+          
+          {/* Tertiary accent curve - subtle */}
+          <motion.path
+            d="M 0 550 Q 500 450, 1000 550 Q 1400 650, 1920 750 L 2020 750"
+            fill="none"
+            stroke="url(#philosophySpiralGradient)"
+            strokeWidth="1.5"
+            filter="url(#philosophySpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.4 }}
+            transition={{ duration: 3.5, delay: 1.2, ease: "easeInOut" }}
+          />
+        </svg>
+      </div>
+
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-20"
@@ -196,22 +279,8 @@ export default function Philosophy() {
                 />
               </div>
 
-              {/* Premium card with glassmorphism */}
-              <div 
-                className="relative h-full p-10 lg:p-12 border border-border-primary/50 bg-bg-secondary/20 backdrop-blur-sm hover:border-accent/60 hover:bg-bg-secondary/40 transition-all duration-700"
-                style={{
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-                  willChange: 'transform',
-                }}
-              >
-                {/* Premium accent line with glow */}
-                <div 
-                  className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-accent to-accent/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-                  style={{
-                    boxShadow: '0 0 20px rgba(220, 38, 38, 0.5)',
-                  }}
-                />
-
+              {/* Content without card styling */}
+              <div className="relative h-full p-10 lg:p-12">
                 {/* Premium icon with animated glow */}
                 <div 
                   className="text-accent mb-8 opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
@@ -250,29 +319,6 @@ export default function Philosophy() {
                 >
                   {section.paragraph}
                 </p>
-
-                {/* Premium number indicator with gradient */}
-                <div 
-                  className="absolute top-8 right-8 text-7xl lg:text-8xl font-black select-none pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(180deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.05) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    lineHeight: '1',
-                  }}
-                >
-                  {String(index + 1).padStart(2, '0')}
-                </div>
-
-                {/* Premium hover glow effect */}
-                <div 
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle at center, rgba(220, 38, 38, 0.1) 0%, transparent 70%)',
-                    borderRadius: 'inherit',
-                  }}
-                />
               </div>
             </div>
           ))}

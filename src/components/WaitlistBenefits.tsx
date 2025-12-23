@@ -14,7 +14,6 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
     ),
-    number: '01',
     title: 'Founding Member Access',
     description: 'Be among the first to experience Ironforge programs before public launch.'
   },
@@ -24,7 +23,6 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    number: '02',
     title: 'Founding Member Pricing',
     description: 'Lock in lifetime pricing reserved for those who join early.'
   },
@@ -34,7 +32,6 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
       </svg>
     ),
-    number: '03',
     title: 'Philosophy First',
     description: 'Access to the core principles and methodology before the noise of marketing.'
   },
@@ -44,7 +41,6 @@ const benefits = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
     ),
-    number: '04',
     title: 'Founding Circle',
     description: 'Join a private space for serious practitioners committed to the long game.'
   }
@@ -53,6 +49,24 @@ const benefits = [
 export default function WaitlistBenefits() {
   const { ref, controls } = useScrollAnimation(0.2)
   const cardsRef = useRef<HTMLDivElement[]>([])
+  const spiralRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    // Parallax effect for spiral lines
+    if (spiralRef.current) {
+      gsap.to(spiralRef.current, {
+        y: -50,
+        rotation: 2,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: spiralRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
+    }
+  }, [])
 
   useEffect(() => {
     cardsRef.current.forEach((card, index) => {
@@ -137,6 +151,71 @@ export default function WaitlistBenefits() {
         }}
       />
 
+      {/* Premium Spiral Line - Spinal Curvature */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <svg
+          ref={spiralRef}
+          className="absolute w-full h-full"
+          viewBox="0 0 1920 1080"
+          preserveAspectRatio="xMidYMid slice"
+          style={{
+            willChange: 'transform',
+          }}
+        >
+          <defs>
+            <linearGradient id="benefitsSpiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.6" />
+              <stop offset="30%" stopColor="#DC2626" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#DC2626" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
+            </linearGradient>
+            <filter id="benefitsSpiralGlow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Main spiral curve - flowing from top-left to bottom-right */}
+          <motion.path
+            d="M -100 150 Q 300 100, 600 200 Q 900 300, 1200 400 Q 1500 500, 1920 600 L 2020 600"
+            fill="none"
+            stroke="url(#benefitsSpiralGradient)"
+            strokeWidth="2.5"
+            filter="url(#benefitsSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.8 }}
+            transition={{ duration: 2.5, delay: 0.8, ease: "easeInOut" }}
+          />
+          
+          {/* Secondary spiral curve - more pronounced */}
+          <motion.path
+            d="M -50 350 Q 400 250, 800 350 Q 1200 450, 1600 550 Q 1800 600, 2020 700 L 2020 700"
+            fill="none"
+            stroke="url(#benefitsSpiralGradient)"
+            strokeWidth="2"
+            filter="url(#benefitsSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.6 }}
+            transition={{ duration: 3, delay: 1, ease: "easeInOut" }}
+          />
+          
+          {/* Tertiary accent curve - subtle */}
+          <motion.path
+            d="M 0 550 Q 500 450, 1000 550 Q 1400 650, 1920 750 L 2020 750"
+            fill="none"
+            stroke="url(#benefitsSpiralGradient)"
+            strokeWidth="1.5"
+            filter="url(#benefitsSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.4 }}
+            transition={{ duration: 3.5, delay: 1.2, ease: "easeInOut" }}
+          />
+        </svg>
+      </div>
+
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
           className="text-center mb-16"
@@ -179,27 +258,15 @@ export default function WaitlistBenefits() {
                 }}
               >
                 {/* Premium icon container with glow */}
-                <div className="flex items-start justify-between mb-8">
+                <div className="mb-8">
                   <div 
-                    className="p-4 bg-accent/10 border border-accent/30 rounded-xl text-accent group-hover:bg-accent/20 group-hover:border-accent/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                    className="p-4 bg-accent/10 border border-accent/30 rounded-xl text-accent group-hover:bg-accent/20 group-hover:border-accent/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 inline-block"
                     style={{
                       boxShadow: '0 0 20px rgba(220, 38, 38, 0.2)',
                       filter: 'drop-shadow(0 0 10px rgba(220, 38, 38, 0.3))',
                     }}
                   >
                     {benefit.icon}
-                  </div>
-                  <div 
-                    className="text-5xl lg:text-6xl font-black select-none pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(180deg, rgba(220, 38, 38, 0.2) 0%, rgba(220, 38, 38, 0.05) 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      lineHeight: '1',
-                    }}
-                  >
-                    {benefit.number}
                   </div>
                 </div>
 

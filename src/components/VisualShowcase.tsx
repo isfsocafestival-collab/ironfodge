@@ -95,15 +95,13 @@ export default function VisualShowcase() {
                 alt={image.alt}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 onError={(e) => {
-                  // Fallback placeholder
+                  // Fallback placeholder - hide image if it fails to load
                   const target = e.target as HTMLImageElement
                   target.style.display = 'none'
                   const parent = target.parentElement
                   if (parent) {
                     parent.innerHTML = `
-                      <div class="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
-                        <div class="text-accent/40 text-6xl font-black">${index + 1}</div>
-                      </div>
+                      <div class="w-full h-full bg-gradient-to-br from-accent/20 to-accent/5"></div>
                     `
                   }
                 }}

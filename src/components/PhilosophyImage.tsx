@@ -52,15 +52,13 @@ export default function PhilosophyImage({ src, alt, index }: PhilosophyImageProp
         alt={alt}
         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         onError={(e) => {
-          // Fallback placeholder
+          // Fallback placeholder - hide image if it fails to load
           const target = e.target as HTMLImageElement
           target.style.display = 'none'
           const parent = target.parentElement
           if (parent) {
             parent.innerHTML = `
-              <div class="w-full h-full bg-gradient-to-br from-accent/10 to-accent/5 flex items-center justify-center">
-                <div class="text-accent/30 text-4xl">${index + 1}</div>
-              </div>
+              <div class="w-full h-full bg-gradient-to-br from-accent/10 to-accent/5"></div>
             `
           }
         }}

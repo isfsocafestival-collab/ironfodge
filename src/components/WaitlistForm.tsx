@@ -1,8 +1,12 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
 import { submitToWaitlist } from '../lib/supabase'
 import MagneticButton from './MagneticButton'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export default function WaitlistForm() {
   const [name, setName] = useState('')
@@ -11,6 +15,24 @@ export default function WaitlistForm() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const { ref, controls } = useScrollAnimation(0.3)
+  const spiralRef = useRef<SVGSVGElement>(null)
+
+  useEffect(() => {
+    // Parallax effect for spiral lines
+    if (spiralRef.current) {
+      gsap.to(spiralRef.current, {
+        y: -50,
+        rotation: 2,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: spiralRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
+        },
+      })
+    }
+  }, [])
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -64,6 +86,71 @@ export default function WaitlistForm() {
       {/* Decorative elements */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-accent/5 rounded-full blur-3xl opacity-50" />
       <div className="absolute bottom-20 right-10 w-80 h-80 bg-accent/5 rounded-full blur-3xl opacity-50" />
+
+      {/* Premium Spiral Line - Spinal Curvature */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <svg
+          ref={spiralRef}
+          className="absolute w-full h-full"
+          viewBox="0 0 1920 1080"
+          preserveAspectRatio="xMidYMid slice"
+          style={{
+            willChange: 'transform',
+          }}
+        >
+          <defs>
+            <linearGradient id="waitlistSpiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.6" />
+              <stop offset="30%" stopColor="#DC2626" stopOpacity="0.4" />
+              <stop offset="60%" stopColor="#DC2626" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
+            </linearGradient>
+            <filter id="waitlistSpiralGlow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Main spiral curve - flowing from top-left to bottom-right */}
+          <motion.path
+            d="M -100 150 Q 300 100, 600 200 Q 900 300, 1200 400 Q 1500 500, 1920 600 L 2020 600"
+            fill="none"
+            stroke="url(#waitlistSpiralGradient)"
+            strokeWidth="2.5"
+            filter="url(#waitlistSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.8 }}
+            transition={{ duration: 2.5, delay: 0.8, ease: "easeInOut" }}
+          />
+          
+          {/* Secondary spiral curve - more pronounced */}
+          <motion.path
+            d="M -50 350 Q 400 250, 800 350 Q 1200 450, 1600 550 Q 1800 600, 2020 700 L 2020 700"
+            fill="none"
+            stroke="url(#waitlistSpiralGradient)"
+            strokeWidth="2"
+            filter="url(#waitlistSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.6 }}
+            transition={{ duration: 3, delay: 1, ease: "easeInOut" }}
+          />
+          
+          {/* Tertiary accent curve - subtle */}
+          <motion.path
+            d="M 0 550 Q 500 450, 1000 550 Q 1400 650, 1920 750 L 2020 750"
+            fill="none"
+            stroke="url(#waitlistSpiralGradient)"
+            strokeWidth="1.5"
+            filter="url(#waitlistSpiralGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.4 }}
+            transition={{ duration: 3.5, delay: 1.2, ease: "easeInOut" }}
+          />
+        </svg>
+      </div>
 
       <div className="max-w-2xl mx-auto text-center relative z-10">
         <motion.div
