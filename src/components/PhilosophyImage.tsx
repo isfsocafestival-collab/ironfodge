@@ -17,19 +17,25 @@ export default function PhilosophyImage({ src, alt, index }: PhilosophyImageProp
   useEffect(() => {
     if (!imageRef.current) return
 
+    // Reduced animation intensity on mobile
+    const isMobile = window.innerWidth < 768
+    const mobileY = isMobile ? 20 : 30
+    const mobileScale = isMobile ? 1.05 : 1.1
+    const mobileDuration = isMobile ? 0.6 : 1.2
+
     gsap.fromTo(
       imageRef.current,
       {
         opacity: 0,
-        scale: 1.1,
-        y: 30,
+        scale: mobileScale,
+        y: mobileY,
       },
       {
         opacity: 1,
         scale: 1,
         y: 0,
-        duration: 1.2,
-        delay: index * 0.15,
+        duration: mobileDuration,
+        delay: index * (isMobile ? 0.1 : 0.15),
         ease: 'power3.out',
         scrollTrigger: {
           trigger: imageRef.current,
@@ -43,9 +49,7 @@ export default function PhilosophyImage({ src, alt, index }: PhilosophyImageProp
   return (
     <motion.div
       ref={imageRef}
-      className="relative aspect-[4/3] overflow-hidden rounded-lg group"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3 }}
+      className="relative aspect-[4/3] overflow-hidden rounded-lg group md:group-hover:scale-[1.02] transition-transform duration-300"
     >
       <img
         src={src}

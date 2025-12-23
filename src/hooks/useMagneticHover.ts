@@ -8,6 +8,10 @@ export function useMagneticHover(strength = 0.3) {
     const element = ref.current
     if (!element) return
 
+    // Disable magnetic effect on mobile devices
+    const isMobile = window.innerWidth < 768
+    if (isMobile) return
+
     const handleMouseMove = (e: MouseEvent) => {
       const rect = element.getBoundingClientRect()
       const x = e.clientX - rect.left - rect.width / 2

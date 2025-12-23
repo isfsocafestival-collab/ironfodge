@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer 
       ref={ref}
-      className="py-16 px-8 border-t border-border-primary"
+      className="py-12 md:py-16 px-4 md:px-8 border-t border-border-primary"
     >
       <div className="max-w-6xl mx-auto text-center">
         <motion.div

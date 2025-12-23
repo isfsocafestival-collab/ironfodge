@@ -52,7 +52,11 @@ export default function WaitlistBenefits() {
   const spiralRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    // Parallax effect for spiral lines
+    // Disable parallax on mobile for better performance
+    const isMobile = window.innerWidth < 768
+    if (isMobile) return
+
+    // Parallax effect for spiral lines - desktop only
     if (spiralRef.current) {
       gsap.to(spiralRef.current, {
         y: -50,
@@ -72,22 +76,68 @@ export default function WaitlistBenefits() {
     cardsRef.current.forEach((card, index) => {
       if (!card) return
 
-      // Premium scroll reveal with rotation
+      // Disable 3D effects on mobile
+      const isMobile = window.innerWidth < 768
+
+      if (!isMobile) {
+        // Premium hover 3D effect - desktop only
+        const handleMouseMove = (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          const y = e.clientY - rect.top
+          const centerX = rect.width / 2
+          const centerY = rect.height / 2
+          const rotateX = (y - centerY) / 15
+          const rotateY = (centerX - x) / 15
+
+          gsap.to(card, {
+            rotationX: rotateX,
+            rotationY: rotateY,
+            transformPerspective: 1000,
+            duration: 0.3,
+            ease: 'power2.out',
+          })
+        }
+
+        const handleMouseLeave = () => {
+          gsap.to(card, {
+            rotationX: 0,
+            rotationY: 0,
+            duration: 0.5,
+            ease: 'power2.out',
+          })
+        }
+
+        card.addEventListener('mousemove', handleMouseMove)
+        card.addEventListener('mouseleave', handleMouseLeave)
+
+        return () => {
+          card.removeEventListener('mousemove', handleMouseMove)
+          card.removeEventListener('mouseleave', handleMouseLeave)
+        }
+      }
+
+      // Premium scroll reveal - reduced intensity on mobile
+      const mobileY = isMobile ? 40 : 80
+      const mobileRotationY = isMobile ? 0 : -15
+      const mobileScale = isMobile ? 0.95 : 0.9
+      const mobileDuration = isMobile ? 0.6 : 1.2
+
       gsap.fromTo(
         card,
         {
           opacity: 0,
-          y: 80,
-          rotationY: -15,
-          scale: 0.9,
+          y: mobileY,
+          rotationY: mobileRotationY,
+          scale: mobileScale,
         },
         {
           opacity: 1,
           y: 0,
           rotationY: 0,
           scale: 1,
-          duration: 1.2,
-          delay: index * 0.1,
+          duration: mobileDuration,
+          delay: index * (isMobile ? 0.08 : 0.1),
           ease: 'power3.out',
           scrollTrigger: {
             trigger: card,
@@ -96,49 +146,13 @@ export default function WaitlistBenefits() {
           },
         }
       )
-
-      // Premium hover 3D effect
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = card.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        const centerX = rect.width / 2
-        const centerY = rect.height / 2
-        const rotateX = (y - centerY) / 15
-        const rotateY = (centerX - x) / 15
-
-        gsap.to(card, {
-          rotationX: rotateX,
-          rotationY: rotateY,
-          transformPerspective: 1000,
-          duration: 0.3,
-          ease: 'power2.out',
-        })
-      }
-
-      const handleMouseLeave = () => {
-        gsap.to(card, {
-          rotationX: 0,
-          rotationY: 0,
-          duration: 0.5,
-          ease: 'power2.out',
-        })
-      }
-
-      card.addEventListener('mousemove', handleMouseMove)
-      card.addEventListener('mouseleave', handleMouseLeave)
-
-      return () => {
-        card.removeEventListener('mousemove', handleMouseMove)
-        card.removeEventListener('mouseleave', handleMouseLeave)
-      }
     })
   }, [])
 
   return (
     <section 
       ref={ref}
-      className="py-40 px-8 relative overflow-hidden"
+      className="py-20 md:py-40 px-4 md:px-8 relative overflow-hidden"
     >
       {/* Premium background with animated gradients */}
       <div 
@@ -218,7 +232,7 @@ export default function WaitlistBenefits() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-16 px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={controls}
           variants={{
@@ -226,17 +240,17 @@ export default function WaitlistBenefits() {
           }}
         >
           <h2
-            className="font-bold mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            className="font-bold mb-3 md:mb-4"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 3.5rem)' }}
           >
             Founding Member Benefits
           </h2>
-          <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+          <p className="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Exclusive access for those who join early
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
           {benefits.map((benefit, index) => (
             <div
               key={index}
@@ -251,16 +265,16 @@ export default function WaitlistBenefits() {
             >
               {/* Premium glassmorphic card */}
               <div 
-                className="relative h-full p-10 lg:p-12 bg-bg-secondary/30 backdrop-blur-md border border-border-primary/50 hover:border-accent/60 hover:bg-bg-secondary/50 transition-all duration-700"
+                className="relative h-full p-6 md:p-10 lg:p-12 bg-bg-secondary/30 backdrop-blur-md border border-border-primary/50 md:hover:border-accent/60 md:hover:bg-bg-secondary/50 transition-all duration-700"
                 style={{
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
                   willChange: 'transform',
                 }}
               >
                 {/* Premium icon container with glow */}
-                <div className="mb-8">
+                <div className="mb-6 md:mb-8">
                   <div 
-                    className="p-4 bg-accent/10 border border-accent/30 rounded-xl text-accent group-hover:bg-accent/20 group-hover:border-accent/50 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 inline-block"
+                    className="p-3 md:p-4 bg-accent/10 border border-accent/30 rounded-xl text-accent md:group-hover:bg-accent/20 md:group-hover:border-accent/50 transition-all duration-500 md:group-hover:scale-110 md:group-hover:rotate-3 inline-block"
                     style={{
                       boxShadow: '0 0 20px rgba(220, 38, 38, 0.2)',
                       filter: 'drop-shadow(0 0 10px rgba(220, 38, 38, 0.3))',
@@ -271,7 +285,7 @@ export default function WaitlistBenefits() {
                 </div>
 
                 <h3 
-                  className="text-2xl lg:text-3xl font-bold mb-4"
+                  className="text-xl md:text-2xl lg:text-3xl font-bold mb-3 md:mb-4"
                   style={{
                     letterSpacing: '-0.02em',
                   }}
@@ -279,9 +293,9 @@ export default function WaitlistBenefits() {
                   {benefit.title}
                 </h3>
                 <p 
-                  className="text-text-secondary leading-relaxed text-lg"
+                  className="text-text-secondary leading-relaxed text-base md:text-lg"
                   style={{
-                    lineHeight: '1.8',
+                    lineHeight: '1.75',
                   }}
                 >
                   {benefit.description}

@@ -66,12 +66,14 @@ export default function MagneticButton({
       onClick={onClick}
       disabled={disabled}
       className={`
-        group relative px-14 py-7 overflow-hidden rounded-lg
+        group relative px-8 py-5 md:px-14 md:py-7 overflow-hidden rounded-lg
         bg-gradient-to-br from-accent via-accent to-accent-hover
         hover:from-accent-hover hover:via-accent hover:to-accent
-        text-text-primary font-bold text-lg tracking-[0.1em]
+        text-text-primary font-bold text-base md:text-lg tracking-[0.1em]
         transition-all duration-700
         disabled:opacity-50 disabled:cursor-not-allowed
+        w-full md:w-auto
+        min-h-[56px] md:min-h-0
         ${className}
       `}
       style={{
@@ -94,7 +96,7 @@ export default function MagneticButton({
           0 0 40px rgba(220, 38, 38, 0.4)
         `,
       }}
-      whileTap={{ scale: 0.97, y: 0 }}
+      whileTap={{ scale: 0.98, y: 0 }}
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ 

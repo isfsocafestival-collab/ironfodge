@@ -18,7 +18,11 @@ export default function WaitlistForm() {
   const spiralRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    // Parallax effect for spiral lines
+    // Disable parallax on mobile for better performance
+    const isMobile = window.innerWidth < 768
+    if (isMobile) return
+
+    // Parallax effect for spiral lines - desktop only
     if (spiralRef.current) {
       gsap.to(spiralRef.current, {
         y: -50,
@@ -78,7 +82,7 @@ export default function WaitlistForm() {
     <section 
       id="waitlist-form"
       ref={ref}
-      className="py-32 px-8 relative"
+      className="py-20 md:py-32 px-4 md:px-8 relative"
     >
       {/* Background gradient with accent */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent" />
@@ -159,21 +163,21 @@ export default function WaitlistForm() {
           variants={{
             animate: { opacity: 1, y: 0, transition: { duration: 0.8 } }
           }}
-          className="mb-12"
+          className="mb-8 md:mb-12 px-4"
         >
-          <div className="inline-block mb-6">
-            <span className="px-4 py-2 border border-accent/30 bg-accent/5 rounded-full text-accent text-sm font-semibold tracking-wider">
+          <div className="inline-block mb-4 md:mb-6">
+            <span className="px-3 py-1.5 md:px-4 md:py-2 border border-accent/30 bg-accent/5 rounded-full text-accent text-xs md:text-sm font-semibold tracking-wider">
               JOIN THE WAITLIST
             </span>
           </div>
           <h2
-            className="font-bold mb-6"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            className="font-bold mb-4 md:mb-6"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 3.5rem)' }}
           >
             This is not for everyone.
           </h2>
           
-          <p className="text-text-secondary text-lg max-w-xl mx-auto">
+          <p className="text-text-secondary text-base md:text-lg max-w-xl mx-auto leading-relaxed">
             But if this resonates, join us.
           </p>
         </motion.div>
@@ -185,7 +189,7 @@ export default function WaitlistForm() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="p-12 border-2 border-success bg-success/5 rounded-lg"
+              className="p-8 md:p-12 border-2 border-success bg-success/5 rounded-lg"
             >
               <div className="flex flex-col items-center">
                 <motion.div
@@ -207,7 +211,7 @@ export default function WaitlistForm() {
             <motion.form
               key="form"
               onSubmit={handleSubmit}
-              className="space-y-6 bg-bg-secondary/40 border border-border-primary p-8 rounded-lg backdrop-blur-sm"
+              className="space-y-5 md:space-y-6 bg-bg-secondary/40 border border-border-primary p-6 md:p-8 rounded-lg backdrop-blur-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={controls}
               variants={{
@@ -236,9 +240,10 @@ export default function WaitlistForm() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full bg-bg-tertiary/50 border border-border-primary focus:border-accent outline-none py-4 px-4 rounded-lg text-text-primary placeholder:text-text-muted transition-all duration-300 focus:bg-bg-tertiary focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]"
+                  className="w-full bg-bg-tertiary/50 border border-border-primary focus:border-accent outline-none py-4 md:py-4 px-4 rounded-lg text-text-primary placeholder:text-text-muted transition-all duration-300 focus:bg-bg-tertiary focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)] text-base"
                   disabled={isSubmitting}
                   aria-label="Name"
+                  autoComplete="name"
                 />
               </motion.div>
 
@@ -256,9 +261,11 @@ export default function WaitlistForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full bg-bg-tertiary/50 border border-border-primary focus:border-accent outline-none py-4 px-4 rounded-lg text-text-primary placeholder:text-text-muted transition-all duration-300 focus:bg-bg-tertiary focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)]"
+                  className="w-full bg-bg-tertiary/50 border border-border-primary focus:border-accent outline-none py-4 md:py-4 px-4 rounded-lg text-text-primary placeholder:text-text-muted transition-all duration-300 focus:bg-bg-tertiary focus:shadow-[0_0_0_3px_rgba(220,38,38,0.1)] text-base"
                   disabled={isSubmitting}
                   aria-label="Email"
+                  autoComplete="email"
+                  inputMode="email"
                 />
               </motion.div>
 
@@ -279,11 +286,12 @@ export default function WaitlistForm() {
                 variants={{
                   animate: { opacity: 1, y: 0 }
                 }}
+                className="pt-2"
               >
                 <MagneticButton
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full md:w-auto"
+                  className="w-full"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-2">

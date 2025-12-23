@@ -2,7 +2,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
-import { staggerContainer, staggerItem } from '../lib/animations'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import PhilosophyImage from './PhilosophyImage'
@@ -62,7 +61,11 @@ export default function Philosophy() {
   const spiralRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
-    // Parallax effect for spiral lines
+    // Disable parallax on mobile for better performance
+    const isMobile = window.innerWidth < 768
+    if (isMobile) return
+
+    // Parallax effect for spiral lines - desktop only
     if (spiralRef.current) {
       gsap.to(spiralRef.current, {
         y: -50,
@@ -82,53 +85,68 @@ export default function Philosophy() {
     cardsRef.current.forEach((card, index) => {
       if (!card) return
 
-      // 3D tilt effect on hover
-      const handleMouseMove = (e: MouseEvent) => {
-        const rect = card.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        const centerX = rect.width / 2
-        const centerY = rect.height / 2
-        const rotateX = (y - centerY) / 10
-        const rotateY = (centerX - x) / 10
+      // Disable 3D tilt effect on mobile
+      const isMobile = window.innerWidth < 768
+      
+      if (!isMobile) {
+        // 3D tilt effect on hover - desktop only
+        const handleMouseMove = (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          const y = e.clientY - rect.top
+          const centerX = rect.width / 2
+          const centerY = rect.height / 2
+          const rotateX = (y - centerY) / 10
+          const rotateY = (centerX - x) / 10
 
-        gsap.to(card, {
-          rotationX: rotateX,
-          rotationY: rotateY,
-          transformPerspective: 1000,
-          duration: 0.3,
-          ease: 'power2.out',
-        })
+          gsap.to(card, {
+            rotationX: rotateX,
+            rotationY: rotateY,
+            transformPerspective: 1000,
+            duration: 0.3,
+            ease: 'power2.out',
+          })
+        }
+
+        const handleMouseLeave = () => {
+          gsap.to(card, {
+            rotationX: 0,
+            rotationY: 0,
+            duration: 0.5,
+            ease: 'power2.out',
+          })
+        }
+
+        card.addEventListener('mousemove', handleMouseMove)
+        card.addEventListener('mouseleave', handleMouseLeave)
+
+        return () => {
+          card.removeEventListener('mousemove', handleMouseMove)
+          card.removeEventListener('mouseleave', handleMouseLeave)
+        }
       }
 
-      const handleMouseLeave = () => {
-        gsap.to(card, {
-          rotationX: 0,
-          rotationY: 0,
-          duration: 0.5,
-          ease: 'power2.out',
-        })
-      }
+      // Scroll-triggered reveal - reduced intensity on mobile
+      const mobileY = isMobile ? 30 : 60
+      const mobileScale = isMobile ? 0.95 : 0.9
+      const mobileRotationX = isMobile ? 0 : -15
+      const mobileDuration = isMobile ? 0.6 : 1
 
-      card.addEventListener('mousemove', handleMouseMove)
-      card.addEventListener('mouseleave', handleMouseLeave)
-
-      // Scroll-triggered reveal with scale and rotation
       gsap.fromTo(
         card,
         {
           opacity: 0,
-          y: 60,
-          scale: 0.9,
-          rotationX: -15,
+          y: mobileY,
+          scale: mobileScale,
+          rotationX: mobileRotationX,
         },
         {
           opacity: 1,
           y: 0,
           scale: 1,
           rotationX: 0,
-          duration: 1,
-          delay: index * 0.15,
+          duration: mobileDuration,
+          delay: index * (isMobile ? 0.1 : 0.15),
           ease: 'power3.out',
           scrollTrigger: {
             trigger: card,
@@ -137,18 +155,13 @@ export default function Philosophy() {
           },
         }
       )
-
-      return () => {
-        card.removeEventListener('mousemove', handleMouseMove)
-        card.removeEventListener('mouseleave', handleMouseLeave)
-      }
     })
   }, [])
 
   return (
     <section 
       ref={ref}
-      className="py-40 px-8 relative overflow-hidden"
+      className="py-20 md:py-40 px-4 md:px-8 relative overflow-hidden"
     >
       {/* Premium background with animated gradients */}
       <div 
@@ -239,7 +252,7 @@ export default function Philosophy() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-20"
+          className="text-center mb-12 md:mb-20 px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={controls}
           variants={{
@@ -247,17 +260,17 @@ export default function Philosophy() {
           }}
         >
           <h2
-            className="font-bold mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            className="font-bold mb-3 md:mb-4"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 3.5rem)' }}
           >
             Our Philosophy
           </h2>
-          <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+          <p className="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Four principles that guide everything we do
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
           {philosophySections.map((section, index) => (
             <div
               key={index}
@@ -280,10 +293,10 @@ export default function Philosophy() {
               </div>
 
               {/* Content without card styling */}
-              <div className="relative h-full p-10 lg:p-12">
+              <div className="relative h-full p-6 md:p-10 lg:p-12">
                 {/* Premium icon with animated glow */}
                 <div 
-                  className="text-accent mb-8 opacity-80 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110"
+                  className="text-accent mb-6 md:mb-8 opacity-80 md:group-hover:opacity-100 transition-all duration-500 md:group-hover:scale-110"
                   style={{
                     filter: 'drop-shadow(0 0 10px rgba(220, 38, 38, 0.3))',
                   }}
@@ -293,9 +306,9 @@ export default function Philosophy() {
 
                 {/* Premium content */}
                 <h3
-                  className="font-bold mb-5 text-2xl lg:text-3xl leading-tight"
+                  className="font-bold mb-4 md:mb-5 text-xl md:text-2xl lg:text-3xl leading-tight"
                   style={{ 
-                    fontSize: 'clamp(1.75rem, 3.5vw, 2.25rem)',
+                    fontSize: 'clamp(1.5rem, 5vw, 2.25rem)',
                     letterSpacing: '-0.02em',
                   }}
                 >
@@ -303,7 +316,7 @@ export default function Philosophy() {
                 </h3>
                 
                 <p 
-                  className="text-accent/90 font-semibold mb-6 text-sm tracking-[0.15em] uppercase"
+                  className="text-accent/90 font-semibold mb-4 md:mb-6 text-xs md:text-sm tracking-[0.15em] uppercase leading-relaxed"
                   style={{
                     letterSpacing: '0.15em',
                   }}
@@ -312,9 +325,9 @@ export default function Philosophy() {
                 </p>
                 
                 <p 
-                  className="text-text-secondary leading-relaxed text-lg"
+                  className="text-text-secondary leading-relaxed text-base md:text-lg"
                   style={{
-                    lineHeight: '1.8',
+                    lineHeight: '1.75',
                   }}
                 >
                   {section.paragraph}

@@ -219,7 +219,7 @@ export default function FounderVideo() {
   return (
     <section 
       ref={ref}
-      className="py-32 px-8 relative overflow-hidden"
+      className="py-20 md:py-32 px-4 md:px-8 relative overflow-hidden"
     >
       {/* Background accent */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg-secondary/30 to-transparent" />
@@ -399,7 +399,7 @@ export default function FounderVideo() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-16 px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={controls}
           variants={{
@@ -407,27 +407,29 @@ export default function FounderVideo() {
           }}
         >
           <div className="inline-block mb-4">
-            <span className="px-4 py-2 border border-accent/30 bg-accent/5 rounded-full text-accent text-sm font-semibold tracking-wider">
+            <span className="px-3 py-1.5 md:px-4 md:py-2 border border-accent/30 bg-accent/5 rounded-full text-accent text-xs md:text-sm font-semibold tracking-wider">
               THE FOUNDATION
             </span>
           </div>
           <h2
-            className="font-bold mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            className="font-bold mb-3 md:mb-4"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 3.5rem)' }}
           >
             Why Ironforge Exists
           </h2>
-          <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+          <p className="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             Hear directly from the founder about the philosophy behind Ironforge
           </p>
         </motion.div>
 
         <div 
           ref={containerRef}
-          className="relative rounded-lg overflow-hidden border border-border-primary group"
+          className="relative rounded-lg overflow-hidden border border-border-primary group px-4 md:px-0"
           style={{ 
             aspectRatio: '16/9',
-            minHeight: '400px',
+            minHeight: '300px',
+            maxWidth: '100%',
+            margin: '0 auto',
             boxShadow: '0 0 0 1px rgba(31, 41, 55, 0.5), 0 20px 60px rgba(0,0,0,0.3)',
             backgroundColor: '#111827',
             position: 'relative'
@@ -586,13 +588,13 @@ export default function FounderVideo() {
               <motion.button
                 ref={playButtonRef as React.Ref<HTMLButtonElement>}
                 onClick={handlePlay}
-                className="relative w-24 h-24 rounded-full bg-accent hover:bg-accent-hover flex items-center justify-center transition-all duration-300 shadow-[0_0_40px_rgba(220,38,38,0.4)] group-hover:shadow-[0_0_60px_rgba(220,38,38,0.6)]"
+                className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-accent hover:bg-accent-hover flex items-center justify-center transition-all duration-300 shadow-[0_0_40px_rgba(220,38,38,0.4)] md:group-hover:shadow-[0_0_60px_rgba(220,38,38,0.6)] active:scale-95"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 aria-label="Play video"
               >
                 <svg
-                  className="w-10 h-10 ml-1 text-text-primary"
+                  className="w-8 h-8 md:w-10 md:h-10 ml-1 text-text-primary"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >

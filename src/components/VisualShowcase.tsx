@@ -15,19 +15,25 @@ export default function VisualShowcase() {
     imageRefs.current.forEach((imageRef, index) => {
       if (!imageRef) return
 
+      // Reduced animation intensity on mobile
+      const isMobile = window.innerWidth < 768
+      const mobileY = isMobile ? 30 : 50
+      const mobileScale = isMobile ? 0.95 : 0.9
+      const mobileDuration = isMobile ? 0.6 : 1
+
       gsap.fromTo(
         imageRef,
         {
           opacity: 0,
-          scale: 0.9,
-          y: 50,
+          scale: mobileScale,
+          y: mobileY,
         },
         {
           opacity: 1,
           scale: 1,
           y: 0,
-          duration: 1,
-          delay: index * 0.15,
+          duration: mobileDuration,
+          delay: index * (isMobile ? 0.1 : 0.15),
           ease: 'power3.out',
           scrollTrigger: {
             trigger: imageRef,
@@ -48,7 +54,7 @@ export default function VisualShowcase() {
   return (
     <section 
       ref={ref}
-      className="py-40 px-8 relative overflow-hidden"
+      className="py-20 md:py-40 px-4 md:px-8 relative overflow-hidden"
     >
       {/* Background */}
       <div 
@@ -60,7 +66,7 @@ export default function VisualShowcase() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-16 px-4"
           initial={{ opacity: 0, y: 20 }}
           animate={controls}
           variants={{
@@ -68,27 +74,25 @@ export default function VisualShowcase() {
           }}
         >
           <h2
-            className="font-bold mb-4"
-            style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
+            className="font-bold mb-3 md:mb-4"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 3.5rem)' }}
           >
             Built for the Long Game
           </h2>
-          <p className="text-text-secondary text-lg max-w-2xl mx-auto">
+          <p className="text-text-secondary text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
             See the methodology in action
           </p>
         </motion.div>
 
         {/* Premium image grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 lg:gap-8">
           {images.map((image, index) => (
             <motion.div
               key={index}
               ref={(el) => {
                 imageRefs.current[index] = el
               }}
-              className="group relative aspect-[3/4] overflow-hidden rounded-lg"
-              whileHover={{ y: -8 }}
-              transition={{ duration: 0.3 }}
+              className="group relative aspect-[3/4] overflow-hidden rounded-lg md:group-hover:-translate-y-2 transition-transform duration-300"
             >
               <img
                 src={image.src}

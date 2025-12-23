@@ -18,19 +18,26 @@ export default function Hero() {
   const svgMaskRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
+    // Disable parallax on mobile for better performance
+    const isMobile = window.innerWidth < 768
+    const scrollTriggers: ScrollTrigger[] = []
+
     if (!backgroundRef.current) return
 
-    // Advanced parallax background
-    gsap.to(backgroundRef.current, {
-      yPercent: -50,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: backgroundRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 1
-      }
-    })
+    if (!isMobile) {
+      // Advanced parallax background - desktop only
+      const bgTween = gsap.to(backgroundRef.current, {
+        yPercent: -50,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: backgroundRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1
+        }
+      })
+      if (bgTween.scrollTrigger) scrollTriggers.push(bgTween.scrollTrigger)
+    }
 
     // SVG mask setup - no animation, just positioning
     if (headlineRef.current && svgMaskRef.current) {
@@ -46,7 +53,8 @@ export default function Hero() {
       
       // Fallback to explicit lines if parsing fails
       const explicitLines = [
-        'Strength forged in discipline.',
+        'Strength forged',
+        'in discipline.',
         'Built for longevity.'
       ]
       
@@ -85,26 +93,56 @@ export default function Hero() {
             textElement.setAttribute('letter-spacing', '-0.02em')
             
             // Handle line breaks properly with tspan elements
-            const textLines = lines.length >= 2 ? lines : explicitLines
+            const textLines = lines.length >= 3 ? lines : explicitLines
             
-            if (textLines.length >= 2) {
-              const lineHeight = parseFloat(fontSize) * 1.15
+            if (textLines.length >= 3) {
+              const fontSizeNum = parseFloat(fontSize)
+              if (isNaN(fontSizeNum) || fontSizeNum === 0) {
+                // Fallback if fontSize is invalid
+                textElement.setAttribute('x', centerX.toString())
+                textElement.setAttribute('y', (sectionRect.height / 2).toString())
+                textElement.textContent = textLines.join(' ')
+                return
+              }
+              
+              const lineHeight = fontSizeNum * 1.15
               const totalHeight = lineHeight * (textLines.length - 1)
               const startY = h1CenterY - (totalHeight / 2)
+              
+              // Validate startY is a valid number
+              if (isNaN(startY) || isNaN(centerX) || isNaN(lineHeight)) {
+                textElement.setAttribute('x', centerX.toString())
+                textElement.setAttribute('y', (sectionRect.height / 2).toString())
+                textElement.textContent = textLines.join(' ')
+                return
+              }
+              
+              // Ensure we have at least 3 lines
+              if (textLines.length < 3) {
+                // Pad with empty strings if needed
+                while (textLines.length < 3) {
+                  textLines.push('')
+                }
+              }
               
               // Clear and rebuild tspan elements
               textElement.innerHTML = ''
               
               textLines.forEach((line, i) => {
-                const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
-                tspan.setAttribute('x', centerX.toString())
-                tspan.setAttribute('y', (startY + (i * lineHeight)).toString())
-                tspan.textContent = line
-                textElement.appendChild(tspan)
+                const yPos = startY + (i * lineHeight)
+                if (!isNaN(yPos) && !isNaN(centerX)) {
+                  const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+                  tspan.setAttribute('x', centerX.toString())
+                  tspan.setAttribute('y', yPos.toString())
+                  tspan.textContent = line
+                  textElement.appendChild(tspan)
+                }
               })
             } else {
-              textElement.setAttribute('x', centerX.toString())
-              textElement.setAttribute('y', h1CenterY.toString())
+              const yPos = isNaN(h1CenterY) ? (sectionRect.height / 2) : h1CenterY
+              const xPos = isNaN(centerX) ? (sectionRect.width / 2) : centerX
+              textElement.setAttribute('x', xPos.toString())
+              textElement.setAttribute('y', yPos.toString())
               textElement.textContent = textLines[0] || explicitLines[0]
             }
             
@@ -160,9 +198,9 @@ export default function Hero() {
       })
     }
 
-    // Parallax effect for spiral lines
-    if (spiralRef.current) {
-      gsap.to(spiralRef.current, {
+    // Parallax effect for spiral lines - desktop only
+    if (spiralRef.current && !isMobile) {
+      const spiralTween = gsap.to(spiralRef.current, {
         y: -50,
         rotation: 2,
         ease: 'none',
@@ -173,11 +211,12 @@ export default function Hero() {
           scrub: true,
         },
       })
+      if (spiralTween.scrollTrigger) scrollTriggers.push(spiralTween.scrollTrigger)
     }
 
-    // Parallax effects for floating elements
-    if (floating1Ref.current) {
-      gsap.to(floating1Ref.current, {
+    // Parallax effects for floating elements - desktop only
+    if (floating1Ref.current && !isMobile) {
+      const float1Tween = gsap.to(floating1Ref.current, {
         y: -window.innerHeight * 0.3,
         ease: 'none',
         scrollTrigger: {
@@ -187,10 +226,11 @@ export default function Hero() {
           scrub: true,
         },
       })
+      if (float1Tween.scrollTrigger) scrollTriggers.push(float1Tween.scrollTrigger)
     }
 
-    if (floating2Ref.current) {
-      gsap.to(floating2Ref.current, {
+    if (floating2Ref.current && !isMobile) {
+      const float2Tween = gsap.to(floating2Ref.current, {
         y: -window.innerHeight * 0.2,
         ease: 'none',
         scrollTrigger: {
@@ -200,10 +240,11 @@ export default function Hero() {
           scrub: true,
         },
       })
+      if (float2Tween.scrollTrigger) scrollTriggers.push(float2Tween.scrollTrigger)
     }
 
-    if (floating3Ref.current) {
-      gsap.to(floating3Ref.current, {
+    if (floating3Ref.current && !isMobile) {
+      const float3Tween = gsap.to(floating3Ref.current, {
         y: -window.innerHeight * 0.4,
         ease: 'none',
         scrollTrigger: {
@@ -212,6 +253,21 @@ export default function Hero() {
           end: 'bottom top',
           scrub: true,
         },
+      })
+      if (float3Tween.scrollTrigger) scrollTriggers.push(float3Tween.scrollTrigger)
+    }
+
+    // Cleanup function
+    return () => {
+      // Only kill ScrollTriggers created by this component
+      scrollTriggers.forEach(trigger => {
+        try {
+          if (trigger) {
+            trigger.kill()
+          }
+        } catch (e) {
+          // Ignore errors during cleanup
+        }
       })
     }
   }, [])
@@ -272,7 +328,7 @@ export default function Hero() {
       {/* Premium floating accent orbs with parallax */}
       <div
         ref={floating2Ref}
-        className="absolute top-20 left-10 w-[500px] h-[500px] rounded-full"
+        className="absolute top-20 left-10 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full"
         style={{
           background: 'radial-gradient(circle, rgba(220, 38, 38, 0.2) 0%, transparent 70%)',
           filter: 'blur(80px)',
@@ -281,7 +337,7 @@ export default function Hero() {
       />
       <div
         ref={floating3Ref}
-        className="absolute bottom-20 right-10 w-[600px] h-[600px] rounded-full"
+        className="absolute bottom-20 right-10 w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full"
         style={{
           background: 'radial-gradient(circle, rgba(220, 38, 38, 0.15) 0%, transparent 70%)',
           filter: 'blur(100px)',
@@ -362,11 +418,12 @@ export default function Hero() {
         </svg>
       </div>
 
-      {/* SVG Mask with Video Fill */}
+      {/* SVG Mask with Video Fill - Works on both desktop and mobile */}
+      {/* Red accent colors are preserved in background layers below */}
       <svg
         ref={svgMaskRef}
         className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 5 }}
+        style={{ zIndex: 6 }}
         preserveAspectRatio="none"
       >
         <defs>
@@ -393,10 +450,12 @@ export default function Hero() {
             muted
             playsInline
             style={{
-              width: '100%',
+              width: '110%',
               height: '100%',
               objectFit: 'cover',
+              objectPosition: '70% center',
               display: 'block',
+              marginLeft: '-5%',
             }}
           >
             <source src="/workout.mp4" type="video/mp4" />
@@ -406,7 +465,7 @@ export default function Hero() {
       </svg>
 
       {/* Premium Content */}
-      <div className="relative z-10 text-center px-4 max-w-7xl mx-auto pt-20 pb-20 flex flex-col items-center justify-center" style={{ minHeight: '100vh', paddingTop: 'clamp(2rem, 5vh, 4rem)', paddingBottom: 'clamp(2rem, 5vh, 4rem)' }}>
+      <div className="relative z-10 text-center px-4 md:px-4 max-w-7xl mx-auto pt-20 pb-20 flex flex-col items-center justify-center" style={{ minHeight: '100vh', paddingTop: 'clamp(3rem, 8vh, 4rem)', paddingBottom: 'clamp(3rem, 8vh, 4rem)' }}>
         {/* Premium badge with glow effect */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -416,16 +475,9 @@ export default function Hero() {
             delay: 0.2,
             ease: [0.16, 1, 0.3, 1]
           }}
-          className="mb-12"
+          className="mb-8 md:mb-12"
         >
-          <span 
-            className="inline-block px-6 py-3 border border-accent/40 bg-accent/10 rounded-full text-accent text-xs font-bold tracking-[0.2em] uppercase backdrop-blur-sm"
-            style={{
-              boxShadow: '0 0 20px rgba(220, 38, 38, 0.2), inset 0 0 20px rgba(220, 38, 38, 0.1)',
-            }}
-          >
-            IRONFORGE
-          </span>
+          
         </motion.div>
 
         {/* Hidden h1 used only for positioning - SVG mask shows the actual text with video */}
@@ -433,8 +485,8 @@ export default function Hero() {
           ref={headlineRef}
           className="text-balance font-black tracking-[-0.02em] mb-12 relative"
           style={{
-            fontSize: 'clamp(3.5rem, 9vw, 7rem)',
-            lineHeight: '1.15',
+            fontSize: 'clamp(2.5rem, 8vw, 7rem)',
+            lineHeight: '1.2',
             textAlign: 'center',
             width: '100%',
             maxWidth: '90vw',
@@ -447,7 +499,9 @@ export default function Hero() {
             zIndex: -1,
           }}
         >
-          Strength forged in discipline.
+          Strength forged
+          <br />
+          in discipline.
           <br />
           Built for longevity.
         </h1>
@@ -457,8 +511,8 @@ export default function Hero() {
           ref={subtitleRef}
           className="max-w-4xl mx-auto"
           style={{
-            marginTop: 'clamp(28rem, 60vh, 42rem)',
-            marginBottom: 'clamp(4rem, 10vh, 6rem)',
+            marginTop: 'clamp(24rem, 60vh, 52rem)',
+            marginBottom: 'clamp(3rem, 8vh, 6rem)',
           }}
         >
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
@@ -468,19 +522,20 @@ export default function Hero() {
             {/* Split text design */}
             <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4">
               <span 
-                className="text-text-primary text-lg md:text-xl font-medium tracking-wider uppercase"
+                className="text-text-primary text-lg md:text-lg lg:text-xl font-medium tracking-wider uppercase text-center md:text-left"
                 style={{
                   letterSpacing: '0.15em',
-                  textShadow: '0 2px 10px rgba(220, 38, 38, 0.3)',
+                  textShadow: '0 2px 15px rgba(0, 0, 0, 0.8), 0 0 10px rgba(220, 38, 38, 0.3)',
                 }}
               >
                 A methodology
               </span>
-              <span className="text-accent text-2xl md:text-3xl font-light">—</span>
+              <span className="text-accent text-2xl md:text-2xl lg:text-3xl font-light">—</span>
               <span 
-                className="text-text-secondary text-lg md:text-xl font-light italic"
+                className="text-text-secondary text-lg md:text-lg lg:text-xl font-light italic text-center md:text-left"
                 style={{
                   letterSpacing: '0.05em',
+                  textShadow: '0 2px 15px rgba(0, 0, 0, 0.8)',
                 }}
               >
                 designed for those
@@ -493,10 +548,10 @@ export default function Hero() {
           
           {/* Bottom emphasis line */}
           <p 
-            className="text-text-primary text-2xl md:text-3xl font-bold tracking-tight"
+            className="text-text-primary text-2xl md:text-2xl lg:text-3xl font-bold tracking-tight px-4 leading-tight"
             style={{
               letterSpacing: '-0.01em',
-              textShadow: '0 0 20px rgba(220, 38, 38, 0.2)',
+              textShadow: '0 2px 25px rgba(0, 0, 0, 0.9), 0 0 20px rgba(220, 38, 38, 0.3)',
             }}
           >
             committed to the long game
@@ -512,8 +567,9 @@ export default function Hero() {
             delay: 1.4,
             ease: [0.16, 1, 0.3, 1]
           }}
+          className="w-full px-4 md:w-auto md:px-0"
           style={{
-            marginTop: 'clamp(3rem, 8vh, 5rem)',
+            marginTop: 'clamp(2rem, 6vh, 5rem)',
           }}
         >
           <MagneticButton onClick={() => {
@@ -525,7 +581,7 @@ export default function Hero() {
 
         {/* Subtle scroll indicator */}
         <motion.div
-          className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
+          className="absolute bottom-12 left-1/2 transform -translate-x-1/2 hidden md:block"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.5, duration: 0.6 }}
@@ -546,4 +602,3 @@ export default function Hero() {
     </section>
   )
 }
-

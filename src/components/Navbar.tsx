@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion'
 import MagneticButton from './MagneticButton'
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { scrollY } = useScroll()
 
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -11,11 +12,21 @@ export default function Navbar() {
   })
 
   const scrollToForm = () => {
-    document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })
+    // Close mobile menu first
+    setIsMobileMenuOpen(false)
+    
+    // Small delay to ensure menu closes before scrolling
+    setTimeout(() => {
+      const formElement = document.getElementById('waitlist-form')
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 100)
   }
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    setIsMobileMenuOpen(false)
   }
 
   return (
@@ -124,19 +135,19 @@ export default function Navbar() {
             </span>
             {/* Underline on hover */}
             <motion.div
-              className="h-0.5 bg-accent mt-1"
+              className="h-0.5 bg-accent mt-1 hidden lg:block"
               initial={{ width: 0 }}
               whileHover={{ width: '100%' }}
               transition={{ duration: 0.3 }}
             />
           </motion.button>
 
-          {/* CTA Button */}
+          {/* Desktop CTA Button */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="relative z-10"
+            className="relative z-10 hidden md:block"
           >
             <MagneticButton 
               onClick={scrollToForm}
@@ -145,7 +156,70 @@ export default function Navbar() {
               Join Waitlist
             </MagneticButton>
           </motion.div>
+
+          {/* Mobile Menu Button */}
+          <motion.button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden relative z-10 p-2 focus:outline-none"
+            whileTap={{ scale: 0.95 }}
+            aria-label="Toggle menu"
+          >
+            <div className="w-6 h-6 flex flex-col justify-center gap-1.5">
+              <motion.span
+                className="w-full h-0.5 bg-text-primary rounded-full"
+                animate={{
+                  rotate: isMobileMenuOpen ? 45 : 0,
+                  y: isMobileMenuOpen ? 6 : 0,
+                }}
+                transition={{ duration: 0.3 }}
+              />
+              <motion.span
+                className="w-full h-0.5 bg-text-primary rounded-full"
+                animate={{
+                  opacity: isMobileMenuOpen ? 0 : 1,
+                }}
+                transition={{ duration: 0.2 }}
+              />
+              <motion.span
+                className="w-full h-0.5 bg-text-primary rounded-full"
+                animate={{
+                  rotate: isMobileMenuOpen ? -45 : 0,
+                  y: isMobileMenuOpen ? -6 : 0,
+                }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+          </motion.button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="md:hidden overflow-hidden border-t border-border-primary/50 mt-4 pb-6"
+            >
+              <motion.div
+                initial={{ y: -20 }}
+                animate={{ y: 0 }}
+                exit={{ y: -20 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="pt-6 space-y-4"
+              >
+                <motion.button
+                  onClick={scrollToForm}
+                  className="w-full py-4 px-6 bg-accent hover:bg-accent-hover text-text-primary font-bold text-base tracking-wider rounded-lg transition-all duration-300 active:scale-[0.98]"
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Join Waitlist
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.nav>
   )
