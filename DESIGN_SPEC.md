@@ -401,3 +401,4 @@ CREATE TABLE waitlist_submissions (
 - [ ] SEO meta tags
 - [ ] Analytics setup (if needed)
 
+

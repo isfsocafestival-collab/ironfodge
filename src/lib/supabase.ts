@@ -26,3 +26,4 @@ export async function submitToWaitlist(data: WaitlistSubmission) {
   return result
 }
 
+

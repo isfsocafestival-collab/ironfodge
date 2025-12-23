@@ -130,3 +130,4 @@ Edit `tailwind.config.js` to customize the color palette.
 
 Private project - All rights reserved
 
+

@@ -15,3 +15,4 @@ export function useScrollAnimation(threshold = 0.2) {
   return { ref, controls }
 }
 
+
