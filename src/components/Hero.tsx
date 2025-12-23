@@ -511,7 +511,7 @@ export default function Hero() {
           ref={subtitleRef}
           className="max-w-4xl mx-auto"
           style={{
-            marginTop: 'clamp(24rem, 60vh, 52rem)',
+            marginTop: 'clamp(40rem, 80vh, 70rem)',
             marginBottom: 'clamp(3rem, 8vh, 6rem)',
           }}
         >

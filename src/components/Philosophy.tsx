@@ -292,8 +292,14 @@ export default function Philosophy() {
                 />
               </div>
 
-              {/* Content without card styling */}
-              <div className="relative h-full p-6 md:p-10 lg:p-12">
+              {/* Premium glassmorphic card */}
+              <div 
+                className="relative h-full p-6 md:p-10 lg:p-12 bg-bg-secondary/30 backdrop-blur-md border border-border-primary/50 md:hover:border-accent/60 md:hover:bg-bg-secondary/50 transition-all duration-700"
+                style={{
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+                  willChange: 'transform',
+                }}
+              >
                 {/* Premium icon with animated glow */}
                 <div 
                   className="text-accent mb-6 md:mb-8 opacity-80 md:group-hover:opacity-100 transition-all duration-500 md:group-hover:scale-110"
@@ -332,6 +338,22 @@ export default function Philosophy() {
                 >
                   {section.paragraph}
                 </p>
+
+                {/* Premium animated accent line */}
+                <div 
+                  className="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-accent to-accent/50 group-hover:w-full transition-all duration-700"
+                  style={{
+                    boxShadow: '0 0 10px rgba(220, 38, 38, 0.5)',
+                  }}
+                />
+
+                {/* Premium hover glow */}
+                <div 
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-lg"
+                  style={{
+                    background: 'radial-gradient(circle at center, rgba(220, 38, 38, 0.15) 0%, transparent 70%)',
+                  }}
+                />
               </div>
             </div>
           ))}
