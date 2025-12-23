@@ -54,6 +54,7 @@ export default function PhilosophyImage({ src, alt, index }: PhilosophyImageProp
       <img
         src={src}
         alt={alt}
+        loading="lazy"
         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         onError={(e) => {
           // Fallback placeholder - hide image if it fails to load

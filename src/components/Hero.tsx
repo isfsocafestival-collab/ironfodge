@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import MagneticButton from './MagneticButton'
@@ -16,33 +16,91 @@ export default function Hero() {
   const floating3Ref = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const svgMaskRef = useRef<SVGSVGElement>(null)
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false)
+  const [shouldLoadSpirals, setShouldLoadSpirals] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
+  // Detect mobile and defer non-critical work
   useEffect(() => {
-    // Disable parallax on mobile for better performance
-    const isMobile = window.innerWidth < 768
-    const scrollTriggers: ScrollTrigger[] = []
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
-    if (!backgroundRef.current) return
-
-    if (!isMobile) {
-      // Advanced parallax background - desktop only
-      const bgTween = gsap.to(backgroundRef.current, {
-        yPercent: -50,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: backgroundRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1
-        }
-      })
-      if (bgTween.scrollTrigger) scrollTriggers.push(bgTween.scrollTrigger)
+  // Lazy load video when user interacts or scrolls near hero
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (!shouldLoadVideo) {
+        setShouldLoadVideo(true)
+      }
     }
 
-    // SVG mask setup - no animation, just positioning
-    if (headlineRef.current && svgMaskRef.current) {
+    // Load video on user interaction
+    const events = ['touchstart', 'click', 'scroll']
+    events.forEach(event => {
+      window.addEventListener(event, handleInteraction, { once: true, passive: true })
+    })
+
+    // Or load when hero is in viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !shouldLoadVideo) {
+          setShouldLoadVideo(true)
+        }
+      },
+      { rootMargin: '50px' }
+    )
+
+    if (headlineRef.current) {
+      observer.observe(headlineRef.current)
+    }
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, handleInteraction)
+      })
+      observer.disconnect()
+    }
+  }, [shouldLoadVideo])
+
+  // Critical: Background parallax (desktop only) - runs immediately
+  useEffect(() => {
+    if (!backgroundRef.current || isMobile) return
+
+    const scrollTriggers: ScrollTrigger[] = []
+
+    // Advanced parallax background - desktop only
+    const bgTween = gsap.to(backgroundRef.current, {
+      yPercent: -50,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: backgroundRef.current,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 1
+      }
+    })
+    if (bgTween.scrollTrigger) scrollTriggers.push(bgTween.scrollTrigger)
+
+    return () => {
+      scrollTriggers.forEach(trigger => {
+        try {
+          if (trigger) trigger.kill()
+        } catch (e) {}
+      })
+    }
+  }, [isMobile])
+
+  // Deferred: SVG mask positioning - runs after first paint
+  useEffect(() => {
+    // Defer SVG mask setup until after initial render
+    const setupSVGMask = () => {
+      if (!headlineRef.current || !svgMaskRef.current) return
+
       const headline = headlineRef.current
-      // Get original text content - handle <br /> tags properly
       const htmlContent = headline.innerHTML
       const lines = htmlContent
         .replace(/<br\s*\/?>/gi, '|||LINEBREAK|||')
@@ -51,155 +109,167 @@ export default function Hero() {
         .map(line => line.trim())
         .filter(line => line.length > 0)
       
-      // Fallback to explicit lines if parsing fails
       const explicitLines = [
         'Strength forged',
         'in discipline.',
         'Built for longevity.'
       ]
       
-      // Wait for DOM to render, then position SVG mask
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (!headlineRef.current || !svgMaskRef.current) return
+      // Get the h1 dimensions and position for SVG mask
+      const h1Rect = headline.getBoundingClientRect()
+      const sectionRect = headline.closest('section')?.getBoundingClientRect()
+      
+      if (!sectionRect) return
+      
+      const svg = svgMaskRef.current
+      const computedStyle = window.getComputedStyle(headline)
+      const fontSize = computedStyle.fontSize
+      
+      const textElement = svg.querySelector('#mask-text') as SVGTextElement
+      if (textElement) {
+        const centerX = sectionRect.width / 2
+        const h1Top = h1Rect.top - sectionRect.top
+        const h1CenterY = h1Top + h1Rect.height / 2
+        
+        textElement.innerHTML = ''
+        textElement.setAttribute('font-size', fontSize)
+        textElement.setAttribute('font-weight', '900')
+        textElement.setAttribute('text-anchor', 'middle')
+        textElement.setAttribute('dominant-baseline', 'middle')
+        textElement.setAttribute('letter-spacing', '-0.02em')
+        
+        const textLines = lines.length >= 3 ? lines : explicitLines
+        
+        if (textLines.length >= 3) {
+          const fontSizeNum = parseFloat(fontSize)
+          if (isNaN(fontSizeNum) || fontSizeNum === 0) {
+            textElement.setAttribute('x', centerX.toString())
+            textElement.setAttribute('y', (sectionRect.height / 2).toString())
+            textElement.textContent = textLines.join(' ')
+            return
+          }
           
-          // Get the h1 dimensions and position for SVG mask
-          const h1Rect = headline.getBoundingClientRect()
-          const sectionRect = headline.closest('section')?.getBoundingClientRect()
+          const lineHeight = fontSizeNum * 1.15
+          const totalHeight = lineHeight * (textLines.length - 1)
+          const startY = h1CenterY - (totalHeight / 2)
           
-          if (!sectionRect) return
+          if (isNaN(startY) || isNaN(centerX) || isNaN(lineHeight)) {
+            textElement.setAttribute('x', centerX.toString())
+            textElement.setAttribute('y', (sectionRect.height / 2).toString())
+            textElement.textContent = textLines.join(' ')
+            return
+          }
           
-          // Update SVG mask with text positioning
-          const svg = svgMaskRef.current
-          const computedStyle = window.getComputedStyle(headline)
-          const fontSize = computedStyle.fontSize
-          
-          // Update text element in SVG mask
-          const textElement = svg.querySelector('#mask-text') as SVGTextElement
-          if (textElement) {
-            // Calculate center position relative to section
-            const centerX = sectionRect.width / 2
-            const h1Top = h1Rect.top - sectionRect.top
-            const h1CenterY = h1Top + h1Rect.height / 2
-            
-            // Clear any existing content
-            textElement.innerHTML = ''
-            
-            // Set base text attributes
-            textElement.setAttribute('font-size', fontSize)
-            textElement.setAttribute('font-weight', '900')
-            textElement.setAttribute('text-anchor', 'middle')
-            textElement.setAttribute('dominant-baseline', 'middle')
-            textElement.setAttribute('letter-spacing', '-0.02em')
-            
-            // Handle line breaks properly with tspan elements
-            const textLines = lines.length >= 3 ? lines : explicitLines
-            
-            if (textLines.length >= 3) {
-              const fontSizeNum = parseFloat(fontSize)
-              if (isNaN(fontSizeNum) || fontSizeNum === 0) {
-                // Fallback if fontSize is invalid
-                textElement.setAttribute('x', centerX.toString())
-                textElement.setAttribute('y', (sectionRect.height / 2).toString())
-                textElement.textContent = textLines.join(' ')
-                return
-              }
-              
-              const lineHeight = fontSizeNum * 1.15
-              const totalHeight = lineHeight * (textLines.length - 1)
-              const startY = h1CenterY - (totalHeight / 2)
-              
-              // Validate startY is a valid number
-              if (isNaN(startY) || isNaN(centerX) || isNaN(lineHeight)) {
-                textElement.setAttribute('x', centerX.toString())
-                textElement.setAttribute('y', (sectionRect.height / 2).toString())
-                textElement.textContent = textLines.join(' ')
-                return
-              }
-              
-              // Ensure we have at least 3 lines
-              if (textLines.length < 3) {
-                // Pad with empty strings if needed
-                while (textLines.length < 3) {
-                  textLines.push('')
-                }
-              }
-              
-              // Clear and rebuild tspan elements
-              textElement.innerHTML = ''
-              
-              textLines.forEach((line, i) => {
-                const yPos = startY + (i * lineHeight)
-                if (!isNaN(yPos) && !isNaN(centerX)) {
-                  const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
-                  tspan.setAttribute('x', centerX.toString())
-                  tspan.setAttribute('y', yPos.toString())
-                  tspan.textContent = line
-                  textElement.appendChild(tspan)
-                }
-              })
-            } else {
-              const yPos = isNaN(h1CenterY) ? (sectionRect.height / 2) : h1CenterY
-              const xPos = isNaN(centerX) ? (sectionRect.width / 2) : centerX
-              textElement.setAttribute('x', xPos.toString())
-              textElement.setAttribute('y', yPos.toString())
-              textElement.textContent = textLines[0] || explicitLines[0]
-            }
-            
-            // Update video container to cover the entire section - ensures full text coverage
-            const videoContainer = svg.querySelector('#video-container') as SVGForeignObjectElement
-            if (videoContainer) {
-              // Cover the entire section so video shows through all text without cropping
-              videoContainer.setAttribute('x', '0')
-              videoContainer.setAttribute('y', '0')
-              videoContainer.setAttribute('width', sectionRect.width.toString())
-              videoContainer.setAttribute('height', sectionRect.height.toString())
+          if (textLines.length < 3) {
+            while (textLines.length < 3) {
+              textLines.push('')
             }
           }
-        })
-      })
+          
+          textElement.innerHTML = ''
+          
+          textLines.forEach((line, i) => {
+            const yPos = startY + (i * lineHeight)
+            if (!isNaN(yPos) && !isNaN(centerX)) {
+              const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+              tspan.setAttribute('x', centerX.toString())
+              tspan.setAttribute('y', yPos.toString())
+              tspan.textContent = line
+              textElement.appendChild(tspan)
+            }
+          })
+        } else {
+          const yPos = isNaN(h1CenterY) ? (sectionRect.height / 2) : h1CenterY
+          const xPos = isNaN(centerX) ? (sectionRect.width / 2) : centerX
+          textElement.setAttribute('x', xPos.toString())
+          textElement.setAttribute('y', yPos.toString())
+          textElement.textContent = textLines[0] || explicitLines[0]
+        }
+        
+        const videoContainer = svg.querySelector('#video-container') as SVGForeignObjectElement
+        if (videoContainer) {
+          videoContainer.setAttribute('x', '0')
+          videoContainer.setAttribute('y', '0')
+          videoContainer.setAttribute('width', sectionRect.width.toString())
+          videoContainer.setAttribute('height', sectionRect.height.toString())
+        }
+      }
     }
 
-    // Auto-play video when ready
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
+    // Defer SVG mask setup until after first paint
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setupSVGMask()
+      })
+    })
+  }, [])
+
+  // Video autoplay - only when video should load
+  useEffect(() => {
+    if (!shouldLoadVideo || !videoRef.current) return
+
+    const video = videoRef.current
+    const playPromise = video.play()
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
         // Autoplay was prevented, user interaction required
       })
     }
+  }, [shouldLoadVideo])
 
-    // Subtitle reveal with stagger
-    if (subtitleRef.current) {
-      const subtitleElements = subtitleRef.current.querySelectorAll('span, p')
-      gsap.fromTo(
-        subtitleElements,
-        {
-          opacity: 0,
-          y: 20,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          delay: 1.2,
-          stagger: 0.1,
-          ease: 'power3.out',
-        }
-      )
-    }
+  // Important: Subtitle reveal - runs after first paint
+  useEffect(() => {
+    if (!subtitleRef.current) return
 
-    // Animated grid pattern
-    const gridPattern = document.querySelector('.grid-pattern') as HTMLElement
-    if (gridPattern) {
-      gsap.to(gridPattern, {
-        backgroundPosition: '50px 50px',
-        duration: 20,
-        repeat: -1,
-        ease: 'none',
-      })
-    }
+    const subtitleElements = subtitleRef.current.querySelectorAll('span, p')
+    gsap.fromTo(
+      subtitleElements,
+      {
+        opacity: 0,
+        y: 20,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        delay: 1.2,
+        stagger: 0.1,
+        ease: 'power3.out',
+      }
+    )
+  }, [])
+
+  // Enhancement: Animated grid pattern - deferred
+  useEffect(() => {
+    if (!floating1Ref.current) return
+
+    const gridPattern = floating1Ref.current
+    gsap.to(gridPattern, {
+      backgroundPosition: '50px 50px',
+      duration: 20,
+      repeat: -1,
+      ease: 'none',
+    })
+  }, [])
+
+  // Defer spiral animations until after first paint
+  useEffect(() => {
+    // Load spirals after a short delay to prioritize content
+    const timer = setTimeout(() => {
+      setShouldLoadSpirals(true)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Enhancement: Parallax effects - desktop only, deferred
+  useEffect(() => {
+    if (isMobile) return
+
+    const scrollTriggers: ScrollTrigger[] = []
 
     // Parallax effect for spiral lines - desktop only
-    if (spiralRef.current && !isMobile) {
+    if (spiralRef.current) {
       const spiralTween = gsap.to(spiralRef.current, {
         y: -50,
         rotation: 2,
@@ -215,7 +285,7 @@ export default function Hero() {
     }
 
     // Parallax effects for floating elements - desktop only
-    if (floating1Ref.current && !isMobile) {
+    if (floating1Ref.current) {
       const float1Tween = gsap.to(floating1Ref.current, {
         y: -window.innerHeight * 0.3,
         ease: 'none',
@@ -229,7 +299,7 @@ export default function Hero() {
       if (float1Tween.scrollTrigger) scrollTriggers.push(float1Tween.scrollTrigger)
     }
 
-    if (floating2Ref.current && !isMobile) {
+    if (floating2Ref.current) {
       const float2Tween = gsap.to(floating2Ref.current, {
         y: -window.innerHeight * 0.2,
         ease: 'none',
@@ -243,7 +313,7 @@ export default function Hero() {
       if (float2Tween.scrollTrigger) scrollTriggers.push(float2Tween.scrollTrigger)
     }
 
-    if (floating3Ref.current && !isMobile) {
+    if (floating3Ref.current) {
       const float3Tween = gsap.to(floating3Ref.current, {
         y: -window.innerHeight * 0.4,
         ease: 'none',
@@ -257,20 +327,14 @@ export default function Hero() {
       if (float3Tween.scrollTrigger) scrollTriggers.push(float3Tween.scrollTrigger)
     }
 
-    // Cleanup function
     return () => {
-      // Only kill ScrollTriggers created by this component
       scrollTriggers.forEach(trigger => {
         try {
-          if (trigger) {
-            trigger.kill()
-          }
-        } catch (e) {
-          // Ignore errors during cleanup
-        }
+          if (trigger) trigger.kill()
+        } catch (e) {}
       })
     }
-  }, [])
+  }, [isMobile])
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -353,72 +417,74 @@ export default function Hero() {
         }}
       />
 
-      {/* Premium Spiral Line - Spinal Curvature */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <svg
-          ref={spiralRef}
-          className="absolute w-full h-full"
-          viewBox="0 0 1920 1080"
-          preserveAspectRatio="xMidYMid slice"
-          style={{
-            willChange: 'transform',
-          }}
-        >
-          <defs>
-            <linearGradient id="spiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.6" />
-              <stop offset="30%" stopColor="#DC2626" stopOpacity="0.4" />
-              <stop offset="60%" stopColor="#DC2626" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
-            </linearGradient>
-            <filter id="spiralGlow">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* Main spiral curve - flowing from top-left to bottom-right */}
-          <motion.path
-            d="M -100 150 Q 300 100, 600 200 Q 900 300, 1200 400 Q 1500 500, 1920 600 L 2020 600"
-            fill="none"
-            stroke="url(#spiralGradient)"
-            strokeWidth="2.5"
-            filter="url(#spiralGlow)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.8 }}
-            transition={{ duration: 2.5, delay: 0.8, ease: "easeInOut" }}
-          />
-          
-          {/* Secondary spiral curve - more pronounced */}
-          <motion.path
-            d="M -50 350 Q 400 250, 800 350 Q 1200 450, 1600 550 Q 1800 600, 2020 700 L 2020 700"
-            fill="none"
-            stroke="url(#spiralGradient)"
-            strokeWidth="2"
-            filter="url(#spiralGlow)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.6 }}
-            transition={{ duration: 3, delay: 1, ease: "easeInOut" }}
-          />
-          
-          {/* Tertiary accent curve - subtle */}
-          <motion.path
-            d="M 0 550 Q 500 450, 1000 550 Q 1400 650, 1920 750 L 2020 750"
-            fill="none"
-            stroke="url(#spiralGradient)"
-            strokeWidth="1.5"
-            filter="url(#spiralGlow)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 0.4 }}
-            transition={{ duration: 3.5, delay: 1.2, ease: "easeInOut" }}
-          />
-        </svg>
-      </div>
+      {/* Premium Spiral Line - Spinal Curvature - Deferred for performance */}
+      {shouldLoadSpirals && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <svg
+            ref={spiralRef}
+            className="absolute w-full h-full"
+            viewBox="0 0 1920 1080"
+            preserveAspectRatio="xMidYMid slice"
+            style={{
+              willChange: 'transform',
+            }}
+          >
+            <defs>
+              <linearGradient id="spiralGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#DC2626" stopOpacity="0.6" />
+                <stop offset="30%" stopColor="#DC2626" stopOpacity="0.4" />
+                <stop offset="60%" stopColor="#DC2626" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
+              </linearGradient>
+              <filter id="spiralGlow">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            
+            {/* Main spiral curve - flowing from top-left to bottom-right */}
+            <motion.path
+              d="M -100 150 Q 300 100, 600 200 Q 900 300, 1200 400 Q 1500 500, 1920 600 L 2020 600"
+              fill="none"
+              stroke="url(#spiralGradient)"
+              strokeWidth="2.5"
+              filter="url(#spiralGlow)"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.8 }}
+              transition={{ duration: 2.5, delay: 0.8, ease: "easeInOut" }}
+            />
+            
+            {/* Secondary spiral curve - more pronounced */}
+            <motion.path
+              d="M -50 350 Q 400 250, 800 350 Q 1200 450, 1600 550 Q 1800 600, 2020 700 L 2020 700"
+              fill="none"
+              stroke="url(#spiralGradient)"
+              strokeWidth="2"
+              filter="url(#spiralGlow)"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.6 }}
+              transition={{ duration: 3, delay: 1, ease: "easeInOut" }}
+            />
+            
+            {/* Tertiary accent curve - subtle */}
+            <motion.path
+              d="M 0 550 Q 500 450, 1000 550 Q 1400 650, 1920 750 L 2020 750"
+              fill="none"
+              stroke="url(#spiralGradient)"
+              strokeWidth="1.5"
+              filter="url(#spiralGlow)"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.4 }}
+              transition={{ duration: 3.5, delay: 1.2, ease: "easeInOut" }}
+            />
+          </svg>
+        </div>
+      )}
 
-      {/* SVG Mask with Video Fill - Works on both desktop and mobile */}
+      {/* SVG Mask with Video Fill - SVG renders immediately, video loads lazily */}
       {/* Red accent colors are preserved in background layers below */}
       <svg
         ref={svgMaskRef}
@@ -443,24 +509,36 @@ export default function Hero() {
           width="100%"
           height="100%"
         >
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            style={{
-              width: '110%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: '70% center',
-              display: 'block',
-              marginLeft: '-5%',
-            }}
-          >
-            <source src="/workout.mp4" type="video/mp4" />
-            {/* Fallback if video doesn't exist - you can add multiple sources */}
-          </video>
+          {shouldLoadVideo ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="none"
+              poster="/workout-poster.jpg"
+              style={{
+                width: '110%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: '70% center',
+                display: 'block',
+                marginLeft: '-5%',
+              }}
+            >
+              <source src="/workout.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            // Fallback: show text color until video loads
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'transparent',
+              }}
+            />
+          )}
         </foreignObject>
       </svg>
 
@@ -480,7 +558,7 @@ export default function Hero() {
           
         </motion.div>
 
-        {/* Hidden h1 used only for positioning - SVG mask shows the actual text with video */}
+        {/* H1 used for positioning SVG mask - video plays through this text */}
         <h1
           ref={headlineRef}
           className="text-balance font-black tracking-[-0.02em] mb-12 relative"
