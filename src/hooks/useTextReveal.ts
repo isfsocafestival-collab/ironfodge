@@ -12,7 +12,7 @@ export function useTextReveal() {
 
     const words = ref.current.textContent?.split(' ') || []
     ref.current.innerHTML = words
-      .map((word, i) => `<span class="word" style="display: inline-block; overflow: hidden;"><span style="display: inline-block;">${word}</span></span>`)
+      .map((word) => `<span class="word" style="display: inline-block; overflow: hidden;"><span style="display: inline-block;">${word}</span></span>`)
       .join(' ')
 
     const wordElements = ref.current.querySelectorAll('.word span')

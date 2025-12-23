@@ -58,7 +58,7 @@ export default function MagneticButton({
     <motion.button
       ref={(node) => {
         if (node) {
-          magneticRef.current = node
+          (magneticRef as React.MutableRefObject<HTMLElement | null>).current = node
           buttonRef.current = node
         }
       }}

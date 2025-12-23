@@ -12,10 +12,11 @@ export function useMagneticHover(strength = 0.3) {
     const isMobile = window.innerWidth < 768
     if (isMobile) return
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: Event) => {
+      const mouseEvent = e as MouseEvent
       const rect = element.getBoundingClientRect()
-      const x = e.clientX - rect.left - rect.width / 2
-      const y = e.clientY - rect.top - rect.height / 2
+      const x = mouseEvent.clientX - rect.left - rect.width / 2
+      const y = mouseEvent.clientY - rect.top - rect.height / 2
 
       gsap.to(element, {
         x: x * strength,
@@ -34,11 +35,11 @@ export function useMagneticHover(strength = 0.3) {
       })
     }
 
-    element.addEventListener('mousemove', handleMouseMove)
+    element.addEventListener('mousemove', handleMouseMove as EventListener)
     element.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {
-      element.removeEventListener('mousemove', handleMouseMove)
+      element.removeEventListener('mousemove', handleMouseMove as EventListener)
       element.removeEventListener('mouseleave', handleMouseLeave)
     }
   }, [strength])

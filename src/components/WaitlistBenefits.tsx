@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
-import { staggerContainer, staggerItem } from '../lib/animations'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
