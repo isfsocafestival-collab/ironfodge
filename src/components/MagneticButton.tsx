@@ -19,11 +19,10 @@ export default function MagneticButton({
   disabled = false 
 }: MagneticButtonProps) {
   const magneticRef = useMagneticHover(0.25)
-  const buttonRef = useRef<HTMLButtonElement>(null)
   const rippleRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    const button = buttonRef.current
+    const button = magneticRef.current as HTMLButtonElement | null
     if (!button) return
 
     const handleClick = (e: MouseEvent) => {
@@ -52,16 +51,11 @@ export default function MagneticButton({
 
     button.addEventListener('click', handleClick)
     return () => button.removeEventListener('click', handleClick)
-  }, [])
+  }, [magneticRef])
 
   return (
     <motion.button
-      ref={(node) => {
-        if (node) {
-          (magneticRef as React.MutableRefObject<HTMLElement | null>).current = node
-          buttonRef.current = node
-        }
-      }}
+      ref={magneticRef as React.Ref<HTMLButtonElement>}
       type={type}
       onClick={onClick}
       disabled={disabled}
