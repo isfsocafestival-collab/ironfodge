@@ -527,7 +527,7 @@ export default function Hero() {
                 marginLeft: '-5%',
               }}
             >
-              <source src="/workout.mp4" type="video/mp4" />
+              <source src="/workout1.mp4" type="video/mp4" />
             </video>
           ) : (
             // Fallback: show text color until video loads

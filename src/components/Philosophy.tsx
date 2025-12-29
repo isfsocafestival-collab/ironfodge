@@ -10,15 +10,15 @@ gsap.registerPlugin(ScrollTrigger)
 
 const philosophySections = [
   {
-    image: '/philosophy-1.jpg', // Long-term strength training
+    image: '/philosophy-1.jpeg', // Long-term strength training
     icon: (
       <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
       </svg>
     ),
     heading: "This is not a 12-week program.",
-    summary: "Strength is a system you build over decades, not a destination reached in months.",
-    paragraph: "Ironforge is built on the principle that true strength comes from consistency over years, not intensity over weeks. We reject the culture of quick fixes. What we offer is a methodology designed to serve you for life."
+    summary: "Strength is a system you build over time, not a destination reached in weeks.",
+    paragraph: "Ironforge is built on the principle that true strength comes from consistency over time, not intensity over weeks. We reject the culture of quick fixes. What we offer is a methodology designed to serve you for life."
   },
   {
     image: '/philosophy-2.jpg', // Core strength training

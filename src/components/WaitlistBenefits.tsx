@@ -41,7 +41,7 @@ const benefits = [
       </svg>
     ),
     title: 'Founding Circle',
-    description: 'Join a private space for serious practitioners committed to the long game.'
+    description: 'Join an exclusive private club for those committed to the long game.'
   }
 ]
 

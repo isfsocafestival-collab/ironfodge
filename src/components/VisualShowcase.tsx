@@ -47,8 +47,8 @@ export default function VisualShowcase() {
 
   const images = [
     { src: '/showcase-1.jpg', alt: 'Strength training session' },
-    { src: '/showcase-2.jpg', alt: 'Core strength focus' },
-    { src: '/showcase-3.jpg', alt: 'Precision movement' },
+    { src: '/showcase-2.jpeg', alt: 'Core strength focus' },
+    { src: '/showcase-3.jpeg', alt: 'Precision movement' },
   ]
 
   return (
